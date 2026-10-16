@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { compute } from './monitor.mjs';
+import { compute, taskPaths } from './monitor.mjs';
 
 const ledger = (status = 'in_progress', result = '') => ({ tasks: Array.from({ length: 8 }, (_, i) => ({
   id: `H-${String(i + 1).padStart(2, '0')}`, status: i === 1 ? status : 'todo', result: i === 1 ? result : ''
@@ -39,4 +39,28 @@ test('recorded acceptance earns full points and changed files invalidate it', ()
   changed['data/jingyao_synthetic/stable.csv'] = 'changed-blob';
   assert.equal(compute(changed, {}, ledger('done', 'Verified collection'), accepted)[1].earned, 5);
   assert.equal(compute(changed, {}, ledger('done', 'Reverified changed collection'), accepted)[1].earned, 10);
+});
+
+const appFiles = files(['app/app.py', 'app/qc.py', 'app/testme.sh', 'app/frontend/src/App.jsx', 'tests/test_api.py']);
+const appLedger = ledger();
+appLedger.tasks[3] = { id: 'H-04', status: 'done', result: 'Application and browser checks passed' };
+
+test('H-06 deployment additions and updates preserve H-04 acceptance', () => {
+  const accepted = {};
+  assert.equal(compute(appFiles, {}, appLedger, accepted)[3].earned, 25);
+  const deployed = { ...appFiles, 'app/manifest.json': 'manifest-v1', 'app/.python-version': 'version-v1' };
+  assert.equal(compute(deployed, {}, appLedger, accepted)[3].earned, 25);
+  deployed['app/manifest.json'] = 'manifest-v2';
+  deployed['app/.python-version'] = 'version-v2';
+  assert.equal(compute(deployed, {}, appLedger, accepted)[3].earned, 25);
+  assert.deepEqual(taskPaths(5, deployed), { 'app/.python-version': 'version-v2', 'app/manifest.json': 'manifest-v2' });
+});
+
+test('old browser fingerprints normalize deployment files without hiding application changes', () => {
+  const accepted = { 'H-04': { result: appLedger.tasks[3].result, files: { ...appFiles, 'app/manifest.json': 'old-manifest', 'app/.python-version': 'old-version' } } };
+  const deployed = { ...appFiles, 'app/manifest.json': 'new-manifest', 'app/.python-version': 'new-version' };
+  assert.equal(compute(deployed, {}, appLedger, accepted)[3].earned, 25);
+  assert.equal(compute({ ...deployed, 'app/app.py': 'changed-app' }, {}, appLedger, accepted)[3].earned, 15);
+  assert.equal(compute({ ...deployed, 'app/qc.py': 'changed-core' }, {}, appLedger, accepted)[3].earned, 15);
+  assert.equal(compute({ ...deployed, 'app/frontend/src/App.jsx': 'changed-ui' }, {}, appLedger, accepted)[3].earned, 15);
 });

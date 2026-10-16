@@ -12,4 +12,6 @@ For H-02, the CSV milestone recognizes a group of 2–3 CSV files in the same di
 
 Run local scoring regressions with `node --test monitor.test.mjs`.
 
+H-04 acceptance tracks application and API-test changes, including its statistical dependency. The two deployment-owned files `app/manifest.json` and `app/.python-version` are tracked by H-06 instead, so adding or updating them does not revoke H-04's local application acceptance. Existing browser acceptance caches use the same scope filter; actual application changes still require renewed acceptance.
+
 Third-party YAML parser: js-yaml 4.1.1, MIT, https://github.com/nodeca/js-yaml/tree/4.1.1. The pinned browser bundle and its license are in vendor/. The parser uses JSON_SCHEMA and rejects duplicate YAML keys; repository content is treated only as data.

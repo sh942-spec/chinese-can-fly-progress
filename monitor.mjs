@@ -18,7 +18,9 @@ export function parseLedger(text) {
   return ledger;
 }
 export function taskPaths(index, files) {
-  return Object.fromEntries(Object.entries(files).filter(([p]) => SCOPES[index].some(s => s.endsWith('/') ? p.startsWith(s) : p === s)).sort(([a], [b]) => a.localeCompare(b)));
+  // CONTRACT assigns these deployment files to H-06, outside H-04 acceptance.
+  const excluded = index === 3 ? ['app/manifest.json', 'app/.python-version'] : [];
+  return Object.fromEntries(Object.entries(files).filter(([p]) => !excluded.includes(p) && SCOPES[index].some(s => s.endsWith('/') ? p.startsWith(s) : p === s)).sort(([a], [b]) => a.localeCompare(b)));
 }
 // Same deterministic milestones and acceptance scopes as the local Python monitor.
 // accepted is intentionally updated in place; persist it with the returned rows.
@@ -54,7 +56,7 @@ export function compute(files, texts, ledger, accepted = {}) {
     let record = accepted[id];
     if (!reportedDone) { delete accepted[id]; record = null; }
     else if (!record || record.result !== result) record = accepted[id] = { result, files: fingerprint };
-    const prior = record && object(record.files) ? Object.fromEntries(Object.entries(record.files).sort(([a], [b]) => a.localeCompare(b))) : null;
+    const prior = record && object(record.files) ? taskPaths(i, record.files) : null;
     const fresh = Boolean(record) && JSON.stringify(prior) === JSON.stringify(fingerprint);
     const complete = reportedDone && fresh && checks.every(Boolean);
     add(complete, gate, '任务表已验收：done + 结果记录', reportedDone && !fresh ? '文件已变化，需更新验收记录' : '待任务负责人完成验收并更新 CONTRACT');
