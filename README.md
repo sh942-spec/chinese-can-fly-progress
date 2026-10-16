@@ -8,4 +8,8 @@ Progress uses the same custom 100-point delivery milestones as the local monitor
 
 This separate dashboard never writes to the team's repository or changes its task ledger. The dedicated public source repository holds only dashboard files; GitHub Pages serves the static website. No credentials are included in the website.
 
+For H-02, the CSV milestone recognizes a group of 2–3 CSV files in the same directory under data/, including nested collection folders. Extra supplemental or real-data collections do not invalidate an existing candidate group. A root data/README.md or a candidate group's README supplies the codebook file milestone. These file checks award at most 5/10; the remaining 5 require recorded ledger acceptance, and file presence alone is not content or browser validation.
+
+Run local scoring regressions with `node --test monitor.test.mjs`.
+
 Third-party YAML parser: js-yaml 4.1.1, MIT, https://github.com/nodeca/js-yaml/tree/4.1.1. The pinned browser bundle and its license are in vendor/. The parser uses JSON_SCHEMA and rejects duplicate YAML keys; repository content is treated only as data.

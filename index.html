@@ -22,7 +22,7 @@
 <footer><span id="repository">数据源：等待 GitHub 仓库信息</span><span>只读公开 GitHub · 无模型调用 · 时间按本机时区显示</span></footer>
 </main>
 <script type="module">
-import { createMonitor } from "./monitor.mjs";
+import { createMonitor } from "./monitor.mjs?v=20261016-h02-groups";
 'use strict';
 const $=id=>document.getElementById(id), make=(tag,cls,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value!==undefined)n.textContent=String(value);return n;};
 const time=value=>{const d=new Date(value);return value&&!Number.isNaN(d.getTime())?d.toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):'—';};

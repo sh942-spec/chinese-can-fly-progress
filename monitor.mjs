@@ -33,8 +33,12 @@ export function compute(files, texts, ledger, accepted = {}) {
     if (i === 0) {
       checks = [add(Boolean(texts['SPEC.md']) && !/FILL IN[.,]/.test(texts['SPEC.md']), 2, 'SPEC 已填写', 'SPEC 尚未填齐'), add(has('docs/plan.md'), 2, '实施计划已提交', '待提交实施计划'), add(has('docs/interfaces.md'), 2, '接口文档已提交', '待提交接口文档')]; gate = 4;
     } else if (i === 1) {
-      const count = paths.filter(p => p.startsWith('data/') && p.endsWith('.csv')).length;
-      checks = [add(count >= 2 && count <= 3, 3, '正式 data/ CSV：' + count + ' 份', '待提交 2–3 份正式 data/ CSV'), add(has('data/README.md'), 2, 'Codebook 文件已提交（内容待验收）', '待提交 data/README.md')]; gate = 5;
+      const csvPaths = paths.filter(p => p.startsWith('data/') && p.endsWith('.csv'));
+      const groups = new Map();
+      for (const path of csvPaths) { const dir = path.slice(0, path.lastIndexOf('/')); groups.set(dir, (groups.get(dir) || 0) + 1); }
+      const candidates = [...groups].filter(([, count]) => count >= 2 && count <= 3);
+      const codebook = has('data/README.md') || candidates.some(([dir]) => has(dir + '/README.md'));
+      checks = [add(candidates.length > 0, 3, '已提交 ' + candidates.length + ' 个候选数据组（每组 2–3 份 CSV；合计 ' + csvPaths.length + ' 份 CSV）', '待提交一个含 2–3 份 CSV 的数据组'), add(codebook, 2, 'Codebook 文件已提交（内容待验收）', '待提交 data/README.md 或数据组 README.md')]; gate = 5;
     } else if (i === 2) {
       checks = [add(has('app/qc.py'), 4, '统计核心已提交', '待提交统计核心'), add(has('tests/test_qc.py'), 4, '核心测试已提交', '待提交核心测试'), add(has('tests/fixtures/qc/REVIEW.md'), 2, '独立审查记录已提交', '待提交独立审查记录')]; gate = 15;
     } else if (i === 3) {
